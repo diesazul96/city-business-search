@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import call
 from googlemaps.exceptions import ApiError, Timeout, TransportError, HTTPError
 
 from src.business_information_scraper.maps_api_client import GoogleMapsClient

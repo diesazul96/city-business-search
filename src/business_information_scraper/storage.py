@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Protocol
+from typing import List
 import csv
 import logging
 

@@ -1,4 +1,3 @@
-# tests/unit/test_data_models.py
 import pytest
 from pydantic import ValidationError
 from src.business_information_scraper.data_models import BusinessInfo

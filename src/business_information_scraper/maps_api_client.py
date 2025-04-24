@@ -1,7 +1,7 @@
 import googlemaps
 from googlemaps.exceptions import ApiError, HTTPError, Timeout, TransportError
 import time
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 import logging
 
 from src.business_information_scraper.exceptions import ApiClientError

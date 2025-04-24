@@ -1,5 +1,4 @@
 import logging
-import time
 from typing import List, Optional
 
 from business_information_scraper.maps_api_client import GoogleMapsClient
