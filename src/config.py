@@ -11,6 +11,7 @@ class AppSettings(BaseSettings):
     target_business_type: str = 'restaurant' # Example: find restaurants
     output_storage_type: str = 'csv' # e.g., 'csv', 'json', 'postgresql'
     output_file_path: str | None = 'businesses.csv' # Required if type is csv/json
+    batch_size: int = 100
     api_timeout_seconds: PositiveInt = 10
     log_level: str = "INFO"
 

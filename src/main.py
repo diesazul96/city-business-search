@@ -7,15 +7,12 @@ from business_information_scraper.processor import BusinessDataProcessor
 from config import settings
 from business_information_scraper.exceptions import ApiClientError, DataProcessingError
 
-# Configure logging (consider using structlog for richer, structured logs)
 logging.basicConfig(
     level=settings.log_level.upper(),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout # Or configure file logging
+    stream=sys.stdout
 )
-# Suppress overly verbose logs from libraries if needed
-logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("googlemaps").setLevel(logging.INFO) # Adjust as needed
+logging.getLogger("googlemaps").setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +35,8 @@ def run():
         )
         storage.setup()
 
-        # 3. Initialize Processor (Dependency Injection)
-        processor = BusinessDataProcessor(api_client=api_client, storage=storage)
+        # 3. Initialize Processor
+        processor = BusinessDataProcessor(api_client=api_client, storage=storage, batch_size=settings.batch_size)
 
         # 4. Execute the main logic
         processor.process_location(
@@ -53,13 +50,13 @@ def run():
 
     except ApiClientError as e:
          logger.critical(f"API Client critical error: {e}", exc_info=True)
-         sys.exit(1) # Exit with error code
-    except (DataProcessingError, ValueError, NotImplementedError) as e: # Catch specific config/storage errors
+         raise ApiClientError from e
+    except (DataProcessingError, ValueError, NotImplementedError) as e:
         logger.critical(f"Configuration or Processing error: {e}", exc_info=True)
-        sys.exit(1)
+        raise DataProcessingError from e
     except Exception as e:
         logger.critical(f"An unexpected critical error occurred: {e}", exc_info=True)
-        sys.exit(1)
+        raise e
 
 
 if __name__ == "__main__":
