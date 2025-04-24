@@ -4,7 +4,7 @@ import time
 from typing import List, Dict, Any, Optional
 import logging
 
-from business_information_scraper.exceptions import ApiClientError
+from src.business_information_scraper.exceptions import ApiClientError
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ from typing import List, Protocol
 import csv
 import logging
 
-from business_information_scraper.data_models import BusinessInfo
+from src.business_information_scraper.data_models import BusinessInfo
 
 logger = logging.getLogger(__name__)
 
