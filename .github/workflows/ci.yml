@@ -1,0 +1,74 @@
+name: Python CI Checks
+
+on: [push, pull_request] # Trigger on pushes and PRs to any branch
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"] # Test against relevant Python versions
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip' # Cache dependencies
+
+    - name: Install and configure Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.8.3
+        virtualenvs-create: true
+        virtualenvs-in-project: false
+        installer-parallel: true
+
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-root
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        poetry run flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        poetry run flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Format with black and isort (Check only)
+      run: |
+        poetry run black --check src tests
+        poetry run isort --check-only src tests
+
+    - name: Type check with mypy
+      run: |
+        # Ensure Maps_API_KEY is set, even if dummy, if code imports config at module level
+        # Or better, structure code so API key isn't needed at import time for type checking
+        poetry run mypy src
+
+    - name: Security scan with bandit
+      run: |
+        poetry run bandit -r src -ll # Report medium level issues and above
+
+    - name: Test with pytest
+      # Important: Use GitHub Secrets for real API keys in tests that hit the actual API (integration tests)
+      # For unit tests, mock the API client extensively. Avoid hitting the real API in standard CI runs.
+      env:
+        # Provide a dummy key for tests that might try to init the client but are mocked
+        # Or structure tests to not require env vars if fully mocked
+        Maps_API_KEY: "DUMMY_KEY_FOR_CI"
+        # Set other required config for tests if needed
+        TEST_MODE: "True"
+      run: |
+        # Run tests and generate coverage report
+        # Add --cov-fail-under=80 to fail if coverage is below 80%
+        poetry run pytest tests --cov=src/business_locator --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+
+    - name: Check code complexity with radon
+      run: |
+        # Fail if cyclomatic complexity (cc) is > 10 (B rank) or maintainability index (mi) is < 20 (rank C/D)
+        poetry run radon cc src -a -nc # Average complexity, no complexity rank check here
+        poetry run radon cc src -s -nb # Show complexity details, fail if any function > B rank (e.g. > 10)
+        poetry run radon mi src -s -nb # Show maintainability index, fail if any module < B rank (e.g. < 20)
